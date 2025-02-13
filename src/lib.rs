@@ -154,6 +154,16 @@ impl Default for Digest {
     }
 }
 
+impl core::hash::Hasher for Digest {
+    fn finish(&self) -> u64 {
+        self.sum64()
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        self.write(bytes);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -215,6 +225,17 @@ mod tests {
             hasher.write(input);
             assert_eq!(hasher.sum64(), *result, "test case {:x?}", input);
         }
+    }
+
+    #[test]
+    fn test_core_hasher_impl() {
+        use core::hash::Hasher;
+
+        let mut hasher = Digest::new();
+
+        Hasher::write(&mut hasher, b"hello ");
+        Hasher::write(&mut hasher, b"world!");
+        assert_eq!(Hasher::finish(&hasher), 0xd9160d1fa8e418e3);
     }
 
     fn any_buffer() -> <Box<[u8]> as Arbitrary>::Strategy {
